@@ -9,9 +9,18 @@ function get_apache_headers(){
 	return $headers;
 }
 
+// Define file
 $filename = 'test.mov';
+$filesize = filesize($filename); // Bytes
 
 $headers = get_apache_headers();
 
 
+
+if(isset($headers['Range'])){
+	$range = $headers['Range'];
+
+	// Get $offset and $limit bytes
+	list($offset, $limit) = explode('-', substr($range, 6));
+}
 ?>
