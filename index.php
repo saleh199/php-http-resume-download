@@ -22,7 +22,7 @@ $limit = $filesize;
 
 $headers = get_apache_headers();
 
-Header("Accept-Ranges: 0-$filesize");
+Header("Accept-Ranges: bytes");
 
 if(isset($headers['Range'])){
 	$range = $headers['Range'];
@@ -41,6 +41,12 @@ if(isset($headers['Range'])){
 	if($limit > $filesize){
 		$limit = $filesize;
 	}
+
+    if($offset > $limit || $offset >= $filesize || $limit > $filesize){
+        header('HTTP/1.1 416 Requested Range Not Satisfiable');
+        Header("Content-Range: bytes 0-$filesize/$filesize");
+        exit();
+    }
     
     $content_length = $limit - $offset;
 
