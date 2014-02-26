@@ -8,9 +8,6 @@ function get_apache_headers(){
 
 	return $headers;
 }
-
-list(, $range) = explode('=', $_SERVER['HTTP_RANGE'], 2);
-
 // Define file
 $filename = 'test.mov';
 
@@ -22,7 +19,6 @@ $filesize = filesize($filename); // Bytes
 $mime_type = mime_content_type($filename);
 $offset = 0;
 $limit = $filesize;
-
 
 $headers = get_apache_headers();
 
@@ -45,19 +41,21 @@ if(isset($headers['Range'])){
 	if($limit > $filesize){
 		$limit = $filesize;
 	}
+    
+    $content_length = $limit - $offset;
 
 	Header('HTTP/1.0 206 Partial Content');
+    Header("Content-Length: $content_length");
+    Header("Content-Range: bytes $offset-$limit/$filesize");
+}else{
+    Header("Content-Length: $filesize");
 }
 
-$content_length = $limit - $offset;
-
 Header("Content-Type: $mime_type");
-Header("Content-Length: $content_length");
-Header("Content-Range: bytes $offset-$limit/$filesize");
 
 $handle = fopen($filename, 'rb');
 
-echo stream_get_contents($handle, $content_length, $offset);
+echo stream_get_contents($handle, $limit, $offset);
 
 fclose($handle);
 
