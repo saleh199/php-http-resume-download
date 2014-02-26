@@ -22,7 +22,7 @@ $limit = $filesize;
 
 $headers = get_apache_headers();
 
-Header("Accept-Ranges: bytes");
+Header("Accept-Ranges: 0-$filesize");
 
 if(isset($headers['Range'])){
 	$range = $headers['Range'];
@@ -60,10 +60,19 @@ if(isset($headers['Range'])){
 Header("Content-Type: $mime_type");
 
 $handle = fopen($filename, 'rb');
+fseek($handle, $offset);
 
-echo stream_get_contents($handle, $limit, $offset);
+$buffer = 1024 * 8;
+while(!feof($handle) && ($seekPos = ftell($handle)) < $limit){
+
+    if($seekPos + $buffer > $limit){
+        $buffer = $limit - $seekPos;
+    }
+    set_time_limit(0);
+    echo fread($handle, $buffer);
+    flush();
+}
 
 fclose($handle);
-
 exit();
 ?>
